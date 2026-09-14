@@ -40,6 +40,7 @@
 
 // export default ProductPage;
 // productPage.tsx — now just consumes the hook
+// productPage.tsx
 import { useProduct } from "./useProduct";
 
 function ProductPage({ productId }: { productId: string }) {
@@ -48,13 +49,19 @@ function ProductPage({ productId }: { productId: string }) {
   if (isLoading) {
     return <p>loading...</p>;
   }
-  if (error) {
+  if (!product && error) {
     return <p>error</p>;
   }
+
   return (
     <div>
-      <p>{product?.name}</p>
-      <p>{product?.price}</p>
+      {product?.imageUrl && (
+        <img src={product.imageUrl} alt={product.name} width={480} height={320} />
+      )}
+      <h2>{product?.name}</h2>
+      <p>{product?.description}</p>
+      <p>${product?.price.toFixed(2)}</p>
+      <p>{product?.isAvailable ? "In stock" : "Out of stock"}</p>
     </div>
   );
 }

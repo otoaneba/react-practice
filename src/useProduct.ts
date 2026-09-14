@@ -7,6 +7,7 @@ interface CacheEntry {
   promise: Promise<Product>;
   data?: Product;
   timestamp: number;
+  isFetching: boolean;
 }
 
 const cache = new Map<string, CacheEntry>();
@@ -15,14 +16,14 @@ const STALE_TIME = 30_000; // 30s
 function getProduct(id: string): Promise<Product> {
   const entry = cache.get(id);
   const isStale = entry?.data !== undefined && Date.now() - entry.timestamp > STALE_TIME;
-
-  if (entry && !isStale) {
-    return entry.promise;
+  
+  if (entry?.isFetching || (entry && !isStale)) {
+    return entry.promise
   }
 
   const promise = fetchProduct(id)
     .then((data) => {
-      cache.set(id, { promise, data, timestamp: Date.now() });
+      cache.set(id, { promise, data, timestamp: Date.now(), isFetching: false });
       return data;
     })
     .catch((err) => {
@@ -30,7 +31,7 @@ function getProduct(id: string): Promise<Product> {
       throw err;
     });
 
-  cache.set(id, { promise, data: entry?.data, timestamp: entry?.timestamp ?? 0 });
+  cache.set(id, { promise, data: entry?.data, timestamp: entry?.timestamp ?? 0, isFetching: true });
   return promise;
 }
 
